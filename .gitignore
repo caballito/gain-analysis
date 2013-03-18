@@ -2,4 +2,6 @@
 # Shared objects and compiler files
 *.so
 *.d
+# Swap files.
+*.swp
 
