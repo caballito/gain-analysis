@@ -1,0 +1,12 @@
+
+v0.0.2
+----------
+
+readrawdata.cc:				- Matteo 5 Aug 2012
+It checks if waveform file is present and if not stop execution
+
+
+v0.0.1
+---------
+
+it just works! With binary(byte) oscilloscope data and merging both raw data in one ROOT file. A waveform class manage the oscilloscope data.
