@@ -75,12 +75,12 @@ Int_t Waveform::ReadEncodedData(WaveformDecoder& decoder)
 TH1* Waveform::MakeTH1(TH1* hist)
 {
   //For the moment the passed histogram is ignored.
-  TH1F* histo = new TH1F("__class_Waveform__","Waveform",
+  TH1F* histo = new TH1F("__class_Waveform__","Waveform;Time (s);Amplitude (mV)",
 			 nsamples, 0., nsamples);
   histo->SetDirectory(0); //out of the current ROOT directory!
 
   for (int i=0; i<nsamples; ++i)
-    histo->Fill( i, static_cast<double>(samples[i])*vscale-voffset );
+    histo->Fill( i, static_cast<Double_t>(samples[i])*vscale-voffset );
     
   return histo;
 }
@@ -97,3 +97,20 @@ Double_t Waveform::Integral(Int_t firstsample, Int_t lastsample)
 
   return static_cast<Double_t>(sum)*vscale-voffset*(lastsample-firstsample+1);
 }
+
+// Return the maximum peak height.
+// Rolf 19-02-2013.
+Double_t Waveform::Peak(Int_t firstsample, Int_t lastsample){
+	if (lastsample < 0 || lastsample >= nsamples) lastsample = nsamples - 1 ;
+	if (firstsample < 0) firstsample = 0 ;
+  if (firstsample > lastsample) return 0. ;
+	
+	// Initialize with 0 (on raw data scale).
+	Double_t max = voffset/vscale ;
+	for (Int_t i=firstsample; i<=lastsample; i++){
+		if (max < samples[i]) max = static_cast<Double_t>(samples[i]) ;
+	}
+
+	return max*vscale-voffset ;
+}
+

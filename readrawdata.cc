@@ -166,7 +166,7 @@ int readrawdata(char * relaxdfilepath, char* WFfilespattern, char * outrootfile,
   GridPix* det1 = new GridPix(averagehits);
   Waveform* wf = new Waveform();
 
-/* Create tree's */
+/* Create tree's branches */
   tree.Branch("Header",eventheader.GetDataBuffer(), eventheader.GetDataDescription());
   tree.Branch("det1",&det1);
   tree.Branch("wf",&wf);
@@ -181,16 +181,7 @@ int readrawdata(char * relaxdfilepath, char* WFfilespattern, char * outrootfile,
   //
   //////////////////////////////////////////
 	
-//! EDIT
-	TString timespname= (TString) outrootfile;
-	timespname.Remove(0,50);
-	std::cout << timespname << std::endl ;
-	//TH1D* htimespectrum= new TH1D("htimespectrum",(TString("Timespectrum ")+timespname).Data(),11811,0,11811);
-	TH1D* htimespectrum= new TH1D("htimespectrum",timespname.Data(),11811,0,11811);
-  
-/*	timespname.Remove(0,18);*/	
-	//TString savepath=TString("/localstore/detrd/data/ConvRelaxdData/Root/Timespectra/")+timespname;
-	TString savepath=timespname;
+	TH1D* hTime= new TH1D("hTime","time spectrum;time (ToA counts);entries",11811,0,11811);
 
   char c = 0;
   while ( (relaxddata.get(c)).good() )
@@ -263,7 +254,7 @@ int readrawdata(char * relaxdfilepath, char* WFfilespattern, char * outrootfile,
 	      if (datavalid(x,y,t))
 		{
 		  det1->Insert(x,y,t);
-		  if (t<11000) htimespectrum->Fill(t);	// Already some simple cut on early events.
+		  if (t<11000) hTime->Fill(t);	// Already some simple cut on early events.
 		  hpixcount.Fill(x,y);
 		}
 	      else  hbadpix.Fill(x,y);
@@ -280,9 +271,9 @@ int readrawdata(char * relaxdfilepath, char* WFfilespattern, char * outrootfile,
     }
   
 //! EDIT Timespectra Histogram Stuff
-//		Double_t max=htimespectrum->GetMaximumBin();
+//		Double_t max=hTime->GetMaximumBin();
 //		TF1 *fit=new TF1("fit","gaus",max-50.,max+50.);
-//		htimespectrum->Fit("fit", "R&&Q");
+//		hTime->Fit("fit", "R&&Q");
 //
 //		ofstream cuts;
 //		cuts.open("/localstore/detrd/data/ConvRelaxdData/Root/Timespectra/cuts.txt", ios::app);
@@ -313,10 +304,10 @@ int readrawdata(char * relaxdfilepath, char* WFfilespattern, char * outrootfile,
   hbadpix.Write();
   hpixcount.Write();
 
-  Double_t max=htimespectrum->GetMaximumBin();
+  Double_t max=hTime->GetMaximumBin();
   TF1 *fit=new TF1("fit","gaus",max-50.,max+50.);
-  htimespectrum->Fit(fit, "R&&Q");
-  htimespectrum->Write();
+  hTime->Fit(fit, "R&&Q");
+  hTime->Write();
 
   rootf.Save();
 

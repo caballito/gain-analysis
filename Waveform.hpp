@@ -11,7 +11,10 @@ class WaveformDecoder;
 class Waveform
 {
 public:
-  typedef char sample_t;
+	// Sample type char for waveform saved as "Binary -> Byte",
+	// short for "Binary -> Word".
+  //typedef char sample_t;
+  typedef short sample_t;
 
   Waveform(); //default constructor required by ROOT I/O
   Waveform(Float_t Vscale, Float_t Voffset, Float_t Tscale, Float_t Tdelay,
@@ -28,6 +31,7 @@ public:
   TH1* MakeTH1(TH1* hist = 0 /*ignored for the moment*/ );
 
   Double_t Integral(Int_t firstsample = 0, Int_t lastsample /*included*/ = -1);
+	Double_t Peak(Int_t firstsample = 0, Int_t lastsample /*included*/ = -1) ;
 
 public: // will become private:
   Float_t vscale;

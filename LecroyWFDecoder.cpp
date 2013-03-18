@@ -86,7 +86,10 @@ Int_t LecroyWFDecoder::FillData(Waveform::sample_t* address)
   dstream.seekg(datapos);
   std::streamsize bytesToRead = Nsamples * sizeof(Waveform::sample_t);
   //  cout << "Bytes to be read: " << bytesToRead << endl;
-  dstream.read( static_cast<char*>(address) , bytesToRead );
+  // Changed this to short for waveform format "Binary -> Word",
+	// instead of char for "Binary -> Byte".
+	// Don't use static_cast, but this one to avoid compiler complaints.
+	dstream.read( reinterpret_cast<char*>(address) , bytesToRead );
 
   status = dstream.good();
   return status;

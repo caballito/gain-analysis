@@ -1,12 +1,20 @@
+v0.0.3
+---------
+
+LecroyWFDecoder.cpp
+Waveform.hpp         - Rolf 19 Feb 2013
+Extended code to read the scope data (sample_t) as short (for waveform saved as "Binary
+-> Word") instead of as char* (when saving as "Binary -> Byte").
+
 
 v0.0.2
-----------
+---------
 
 readrawdata.cc:				- Matteo 5 Aug 2012
-It checks if waveform file is present and if not stop execution
+It checks if waveform file is present; if not stops execution.
 
 
 v0.0.1
 ---------
 
-it just works! With binary(byte) oscilloscope data and merging both raw data in one ROOT file. A waveform class manage the oscilloscope data.
+It just works! With binary(byte) oscilloscope data and merging both raw data in one ROOT file. A waveform class manages the oscilloscope data.

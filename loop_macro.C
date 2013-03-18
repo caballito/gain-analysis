@@ -1,0 +1,7 @@
+{
+	analyse("130213_Ar4.7_p1042mbar_THL412","130213_360V_460V_2260V.root","360V") ;
+	analyse("130213_Ar4.7_p1042mbar_THL412","130213_370V_470V_2270V.root","370V") ;
+	analyse("130213_Ar4.7_p1042mbar_THL412","130213_380V_480V_2280V.root","380V") ;
+	analyse("130213_Ar4.7_p1042mbar_THL412","130213_390V_490V_2290V.root","390V") ;
+	analyse("130213_Ar4.7_p1042mbar_THL412","130213_400V_500V_2300V.root","400V") ;
+}

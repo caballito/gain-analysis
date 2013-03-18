@@ -17,33 +17,24 @@
 #include "TH2.h"
 #include "TF1.h"
 #include "TMath.h"
-#include "TLine.h"
-#include "TCanvas.h"
 #include <sstream>
 //namespace std ;
 
 int analyse(TString subdir, TString file, TString gridV){
+	GridPix* gridpix = new GridPix ;
+	Waveform* wtf = new Waveform ;
+
 	//TString dir = "/data/detrd/darwin/Data/GainMeasurements/ArIsobutane_9010/mergedrootfiles/" ;	// For Ar/iC4H10.
 	//TString dir = "/data/detrd/darwin/Data/GainMeasurements/Argon4_7/mergedrootfiles/" ;	// For Ar 4.7.
 	TString dirData = "/home/caballito/measurements/gain/data/" ;	// For Ar 4.7 on Rolf's laptop.
 	TString fName = dirData + subdir + "/" + file ;
 	TFile* f = new TFile(fName) ;
-	if ( f->IsOpen() ) {
-		cout << "++ Processing " << fName << endl << "++ This may take a while. Take a break or do something funny :-)" << endl ;
-	} else return 0 ;
-
-	GridPix* gridpix = new GridPix ;
-	Waveform* wtf = new Waveform ;
-
+	//if ( f->IsOpen() ) {
+	//	cout << "++ Processing " << fName << endl << "++ This may take a while. Take a break or do something funny :-)" << endl ;
+	//} else return 0 ;
 	TTree* tree = dynamic_cast<TTree*>(f->Get("tree")) ;
 	tree->SetBranchAddress("det1",&gridpix) ;
 	tree->SetBranchAddress("wf",&wtf) ;
-
-	TH1D* hTime = dynamic_cast<TH1D*>(f->Get("hTime")) ;
-	//TH1D* hTime = dynamic_cast<TH1D*>(f->Get("htimespectrum")) ;
-	TH1F* hTime_cut = new TH1F("hTime_cut","clean time spectrum;time (ToA counts);entries",11811,0,11811) ;
-
-	TCanvas* c1 = new TCanvas() ;
 
 	// Time window.
 	std::stringstream tcut ;
@@ -71,15 +62,13 @@ int analyse(TString subdir, TString file, TString gridV){
 	TH2D* hScatter_cut = new TH2D("hScatter_cut",
 			"clean scatter plot;x (pixels);y (pixels)",256,0,256,256,0,256) ;
 	TH1D* hNhits = new TH1D("hNhits","number of hits;hit pixels;entries",100,0,500) ;
-	TH1F* hQ = new TH1F("hQ","charge;charge (e^{-});entries",1000,0,1.e+07) ;
+	// TODO: Use calib to give charge in # of e-.
+	TH1F* hQ = new TH1F("hQ","charge;waveform amplitude (V);entries",1000,0,0.1) ;
 	TH2F* hQvsHits = new TH2F("hQvsHits",
-			"charge vs. number of hits;hit pixels;charge (e^{-})",100,0,500,1000,0,1.e+07) ;
+			"charge vs. number of hits;hit pixels;waveform amplitude (V)",100,0,500,1000,0,0.1) ;
 
 	int sum ;	// To count the number of hits per event.
-	// Calibration function.
-	TF1 calib("calib","[0] + [1]*x",0,10) ;
-	Double_t calibParset[2] = { 2.54877e+05, 1.58931e+07 } ;
-	calib.SetParameters(calibParset) ;
+	double x ;	// To calculate function values of oscFunc for hOsc.
 
 	TEntryList* newentrylist = new TEntryList("newentrylist","cut on event shape and position") ;
 	tree->Draw(">>newentrylist",(shapecut.str()).c_str(),"entrylist") ;
@@ -110,7 +99,10 @@ int analyse(TString subdir, TString file, TString gridV){
 	//cout << "Working on event " ;	
 		
 	for (int i=newentrylist->GetEntry(0); i>=0; i=newentrylist->Next()){	// To already apply the shapecut.
+		//if (i>10) return 0 ;
+		//int i = 8 ;
 		tree->GetEntry(i) ;
+		//if (i%20 == 0) cout << i << " ... " ;	
 
 		// Histogram for number of hits.
 		sum = 0 ;
@@ -119,12 +111,11 @@ int analyse(TString subdir, TString file, TString gridV){
 			if ( tmin<gridpix->t[ipixel] && gridpix->t[ipixel]<tmax ){
 				sum++ ;
 				hScatter_cut->Fill(gridpix->x[ipixel],gridpix->y[ipixel]) ;
-				hTime_cut->Fill(gridpix->t[ipixel]) ;
 			}
 		}
 		hNhits->Fill(sum) ;
 
-/*	TH1* oneWaveform = wtf->MakeTH1() ;	// Fills histogram with waveform. NOTE: already in good units.
+/*		iTH1* oneWaveform = wtf->MakeTH1() ;	// Fills histogram with waveform. NOTE: already in good units.
 		TH1F* hOsc = new TH1F("hOsc","hOsc",wtf->nsamples,0,wtf->nsamples) ;
 		TH1F* hDiff = new TH1F("hDiff","hDiff",wtf->nsamples,0,wtf->nsamples) ;
 */
@@ -166,28 +157,20 @@ int analyse(TString subdir, TString file, TString gridV){
 		//double peakInt = peakFunc->Integral(6000,12000,parset2) ;
 		double peakInt = hDiff->Integral(6500,9500,"width") ;
 		//double peakPosition = oneWaveform->GetMaximumBin() ;
-		//double peakHeight = oneWaveform->GetBinContent(peakPosition) - (parset[5] + parset[6] * TMath::Sin( 2*TMath::Pi()*peakPosition/parset[8] )) ; // Substract the value of the sine over there.
+		//double peakHeight = oneWaveform->GetBinContent(oneWaveform->GetMaximumBin()) - (parset[5] + parset[6] * TMath::Sin( 2*TMath::Pi()*peakPosition/parset[8] )) ; // Substract the value of the sine over there.
+
+		hQ->Fill(peakInt) ;
+		hQvsHits->Fill(static_cast<double>(sum),peakInt) ;
 */			
-		Double_t peakHeight = calib.Eval(wtf->Peak(7000,9500)) ;
-		hQ->Fill(peakHeight) ;
-		hQvsHits->Fill(static_cast<Double_t>(sum),peakHeight) ;	
+		Double_t peakHeight = wtf->Peak(7000,9500) ;
+		hQ->Fill(peakHeight) ;	// TODO: Calculate real charge from peak with calibration.
+		hQvsHits->Fill(static_cast<Double_t>(sum),peakHeight) ;	// TODO: Same here.
 
 		//delete oneWaveform ;	// Clean up.
 		//delete hOsc ;
 		//delete hDiff ;
 			
 	}
-
-	c1->cd() ;
-	hScatter->Draw("colz") ;
-	TLine* x1 = new TLine(xLow,min,xLow,max) ;
-	TLine* x2 = new TLine(xHigh,min,xHigh,max) ;
-	TLine* y1 = new TLine(min,yLow,max,yLow) ;
-	TLine* y2 = new TLine(min,yHigh,max,yHigh) ;
-	x1->SetLineColor(kViolet) ; x2->SetLineColor(kViolet) ;
-	y1->SetLineColor(kViolet) ; y2->SetLineColor(kViolet) ;
-	x1->Draw("same") ; x2->Draw("same") ; y1->Draw("same") ; y2->Draw("same") ;
-	c1->Update() ;
 	
 	TString dirResults = "/home/caballito/measurements/gain/result_files/" ;
 	TString nameOut = dirResults + subdir + "_" + gridV + ".root" ;
@@ -197,33 +180,13 @@ int analyse(TString subdir, TString file, TString gridV){
 	} else cout << "EE Couldn't create output file." << endl ;
 	out->cd() ;
 
-	hTime->Write() ;
-	hTime_cut->Write() ;
 	hNhits->Write() ;
 	hQ->Write() ;
 	hQvsHits->Write() ;
 	hScatter->Write() ;
 	hScatter_cut->Write() ;
-	c1->Write() ;
-	cout << "++ Everything written. Now only closing of the output file left." << endl ;
 
 	out->Close() ;
-	cout << "++ Done :)" << endl ;
 
-/*
-	// Clean up the mess.
-	delete gridpix ;
-	delete wtf ;
-	delete tree ;
-	delete f ;
-	delete hTime; delete hTime_cut ;
-	delete c1 ;
-	delete hScatter ; delete hScatter_cut ;
-	delete hNhits ;
-	delete hQ ; delete hQvsHits ;
-	delete newentrylist ;
-	delete x1 ; delete y1 ; delete x2 ; delete y2 ;
-	delete out ;
-*/
 	return 0 ;
 }

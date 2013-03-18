@@ -118,35 +118,33 @@ int GridPix::Insert(pixel_t newx, pixel_t newy, value_t newt)
   //
   // CASE 1: Totally empty!
   //
-  if (!nhits)
-    if (n_allocated > 0)
-      {
-	//is it possible that for some weird reason it is bad?!?!?
-	if (!firstchunk) return errbaddata;
+  if (!nhits){
+    if (n_allocated > 0){
+			//is it possible that for some weird reason it is bad?!?!?
+			if (!firstchunk) return errbaddata ;
 
-	firstchunk->x[0] = newx; 
-	firstchunk->y[0] = newy; 
-	firstchunk->t[0] = newt;
-	firstchunk->nhitshere = 1;
-	nhits = 1;
-	return 1;
-      }
-    else
-      {
-	//is it possible that for some weird reason it exists?!?!?
-	if (firstchunk) return errbaddata;
+			firstchunk->x[0] = newx;
+			firstchunk->y[0] = newy;
+			firstchunk->t[0] = newt;
+			firstchunk->nhitshere = 1;
+			nhits = 1;
+			return 1;
+		}
+    else {
+			//is it possible that for some weird reason it exists?!?!?
+			if (firstchunk) return errbaddata;
 
-	n_allocated = addspace;
-	x = new pixel_t[n_allocated];
-	y = new pixel_t[n_allocated];
-	t = new value_t[n_allocated];
-	x[0] = newx; y[0] = newy; t[0] = newt;
-	nhits++;
-	firstchunk = new datachunk(nhits, n_allocated, false,
-				   x, y, t, 0);
-	n_datachunks = 1;
-	return 1;
-      };
+			n_allocated = addspace;
+			x = new pixel_t[n_allocated];
+			y = new pixel_t[n_allocated];
+			t = new value_t[n_allocated];
+			x[0] = newx; y[0] = newy; t[0] = newt;
+			nhits++;
+			firstchunk = new datachunk(nhits, n_allocated, false,x, y, t, 0);
+			n_datachunks = 1;
+			return 1;
+		} ;
+	}
   
   //
   // CASE 2: Looking for a position in a specific chunk
@@ -156,12 +154,11 @@ int GridPix::Insert(pixel_t newx, pixel_t newy, value_t newt)
   
 #ifdef GRIDPIX_STILL_DEBUGGING
   //at this point firstchunk must exist!
-  if (!firstchunk)
-    {
-      std::cout << "firstchunk does not exist.. How possible?!?!" 
-		<< std::endl;
-      return errbaddata;
-    }
+  if (!firstchunk){
+		std::cout << "firstchunk does not exist.. How is it possible?!?!"
+			<< std::endl;
+		return errbaddata;
+	}
 #endif
 
   datachunk* prevchunk = firstchunk;
@@ -205,51 +202,45 @@ int GridPix::Insert(pixel_t newx, pixel_t newy, value_t newt)
   //
   // sub-CASE 2A: to be placed at the beginning of the chunk
   //
-  if (prevpos == SortingTools::emptylist)
-    if (prevchunk->n_slots > 0)
-      {
-	prevchunk->x[0] = newx; prevchunk->y[0] = newy; 
-	prevchunk->t[0] = newt;
-	prevchunk->nhitshere = 1;
-	nhits++;
-	return 1;
-      }
-    else
-      {
-	//this should never happen
+  if (prevpos == SortingTools::emptylist){
+		if (prevchunk->n_slots > 0){
+			prevchunk->x[0] = newx; prevchunk->y[0] = newy;
+			prevchunk->t[0] = newt;
+			prevchunk->nhitshere = 1;
+			nhits++;
+			return 1;
+		}
+		else{
+			// This should never happen.
 #ifdef GRIDPIX_STILL_DEBUGGING
-	std::cout << "THIS SHOULD NEVER HAPPEN. Chunk object at " 
-		  << prevchunk 
-		  << " has 0 allocated space!" << std::endl;
+			std::cout << "THIS SHOULD NEVER HAPPEN. Chunk object at "
+				<< prevchunk << " has 0 allocated space!" << std::endl;
 #endif	
-	return errbaddata;
-      };
+			return errbaddata;
+		};
+	}
 
   //
   // sub-CASE 2B: to be placed at the end of the chunk or, in case it
   // is full, a new chunk must be inserted
   //
-  if (prevpos == SortingTools::afteranyother)
-     if (prevchunk->n_slots > prevchunk->nhitshere)
-       {
-	 prevchunk->x[prevchunk->nhitshere] = newx; 
-	 prevchunk->y[prevchunk->nhitshere] = newy; 
-	 prevchunk->t[prevchunk->nhitshere] = newt;
-	 prevchunk->nhitshere++;
-	 nhits++;
-	 return 1;
-       }
-     else
-       {
-	 prevchunk->next 
-	   = new datachunk(1, addspace, true,
-			   &newx, &newy, &newt,
-			   prevchunk->next);
-	 n_datachunks ++;
-	 nhits++;
-	 return 1;
-       };
-
+  if (prevpos == SortingTools::afteranyother){
+		if (prevchunk->n_slots > prevchunk->nhitshere){
+			prevchunk->x[prevchunk->nhitshere] = newx;
+			prevchunk->y[prevchunk->nhitshere] = newy;
+			prevchunk->t[prevchunk->nhitshere] = newt;
+			prevchunk->nhitshere++;
+			nhits++;
+			return 1;
+		}
+		else{
+			prevchunk->next = new datachunk(1, addspace, true,
+			   &newx, &newy, &newt, prevchunk->next);
+			n_datachunks ++;
+			nhits++;
+			return 1;
+		} ;
+	}
 
   //
   // sub-CASE 2C: if it is possible and does not cost too much
@@ -257,46 +248,38 @@ int GridPix::Insert(pixel_t newx, pixel_t newy, value_t newt)
   // the chunk in two, and insert a third chunk with the new element
   // between them
   //
-  if (prevpos >= SortingTools::firstgoodpos)
-    {
-
-      //if possible and not much shift implied, do it! 
-      if ( prevchunk->n_slots > prevchunk->nhitshere  
-	   && (prevchunk->nhitshere - prevpos <= thrshift) )
-	{
-	  prevchunk->ShiftAndPlace(prevpos, newx, newy, newt);
-	  nhits++;
-	  return 1;
+  if (prevpos >= SortingTools::firstgoodpos){
+		//if possible and not much shift implied, do it! 
+    if ( prevchunk->n_slots > prevchunk->nhitshere 
+				&& (prevchunk->nhitshere - prevpos <= thrshift) ){
+			prevchunk->ShiftAndPlace(prevpos, newx, newy, newt);
+			nhits++;
+			return 1;
+		}
+    //otherwise, if in pos 0, insert a new chunk
+		else if (prevpos == 0){
+			prevchunk->next = new datachunk(1, addspace, true,
+					&newx, &newy, &newt, prevchunk->next);
+			n_datachunks++;
+			nhits++;
+			return 1;
+		}
+    //otherwise split in two chunks and insert a new chunk between
+    else{
+			datachunk* secondpiece
+				= new datachunk(prevchunk->nhitshere - prevpos,
+						prevchunk->n_slots - prevpos, false,
+						&(prevchunk->x[prevpos]), &(prevchunk->y[prevpos]),
+						&(prevchunk->t[prevpos]), prevchunk->next);
+			prevchunk->nhitshere = prevpos;
+			prevchunk->n_slots = prevpos;
+			prevchunk->next = new datachunk(1, addspace, true,
+					&newx, &newy, &newt, secondpiece);
+			n_datachunks += 2;
+			nhits++;
+			return 1;
+		}
 	}
-      //otherwise, if in pos 0, insert a new chunk
-      else if (prevpos == 0)
-	{
-	  prevchunk->next = new datachunk(1, addspace, true,
-					  &newx, &newy, &newt,
-					  prevchunk->next);	  
-	  n_datachunks++;
-	  nhits++;
-	  return 1;
-	}
-      //otherwise split in two chunks and insert a new chunk between
-      else
-	{
-	  datachunk* secondpiece
-	    = new datachunk(prevchunk->nhitshere - prevpos,
-			    prevchunk->n_slots - prevpos, false,
-			    &(prevchunk->x[prevpos]), &(prevchunk->y[prevpos]),
-			    &(prevchunk->t[prevpos]),
-			    prevchunk->next);
-	  prevchunk->nhitshere = prevpos;
-	  prevchunk->n_slots = prevpos;
-	  prevchunk->next = new datachunk(1, addspace, true,
-					  &newx, &newy, &newt,
-					  secondpiece);
-	  n_datachunks += 2;
-	  nhits++;
-	  return 1;
-	}
-    }
 
   return -5;
 }
