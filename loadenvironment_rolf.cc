@@ -5,16 +5,16 @@
 
   gROOT->Reset();
 
-  gSystem->CompileMacro("/home/caballito/measurements/gain/v0.0.3/GridPix.cpp",
+  gSystem->CompileMacro("/home/caballito/measurements/gain/gain_src/GridPix.cpp",
 			"k"/*(f)orce, (k)eep after end of ROOT session, debu(g), (O)ptimize, (c)ompile only, (-)flat dir structure*/,
 			"GridPix");
-  gSystem->CompileMacro("/home/caballito/measurements/gain/v0.0.3/Waveform.cpp",
+  gSystem->CompileMacro("/home/caballito/measurements/gain/gain_src/Waveform.cpp",
 			"k"/*(f)orce, (k)eep after end of ROOT session, debu(g), (O)ptimize, (c)ompile only, (-)flat dir structure*/,
 			"Waveform");
-  gSystem->CompileMacro("/home/caballito/measurements/gain/v0.0.3/LecroyWFDecoder.cpp",
+  gSystem->CompileMacro("/home/caballito/measurements/gain/gain_src/LecroyWFDecoder.cpp",
 			"k"/*(f)orce, (k)eep after end of ROOT session, debu(g), (O)ptimize, (c)ompile only, (-)flat dir structure*/,
 			"LecroyWFDecoder");
-  gSystem->CompileMacro("/home/caballito/measurements/gain/v0.0.3/readrawdata.cc",
+  gSystem->CompileMacro("/home/caballito/measurements/gain/gain_src/readrawdata.cc",
 			"k"/*(f)orce, (k)eep after end of ROOT session, debu(g), (O)ptimize, (c)ompile only, (-)flat dir structure*/,
 			"readrawdata");
 
